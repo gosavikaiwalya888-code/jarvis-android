@@ -1,12 +1,10 @@
 
+
 name: Build JARVIS APK
 
 on:
   workflow_dispatch:
   push:
-    paths:
-      - '**.zip'
-      - '.github/workflows/build.yml'
 
 jobs:
   build:
@@ -27,17 +25,22 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Extract JARVIS
+      - name: Extract project
+        run: unzip -o JARVIS-Android14-Source.zip -d extracted
+
+      - name: Fix Java version
         run: |
-          unzip -o JARVIS-Android14-Source.zip -d extracted
+          PROJECT_DIR=$(find extracted -name settings.gradle -printf '%h\n' | head -n 1)
+          echo "Project: $PROJECT_DIR"
+          sed -i '/android[[:space:]]*{/a\    compileOptions {\n        sourceCompatibility JavaVersion.VERSION_17\n        targetCompatibility JavaVersion.VERSION_17\n    }' "$PROJECT_DIR/app/build.gradle"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
 
       - name: Build APK
-        run: |
-          gradle -p extracted/JARVIS-Android14 assembleDebug
+        run: gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: Save APK
         uses: actions/upload-artifact@v4
         with:
-          name: JARVIS-Android14-APK
-          path: extracted/JARVIS-Android14/app/build/outputs/apk/debug/*.apk
+          name: JARVIS-APK
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
           
