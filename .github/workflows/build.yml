@@ -44,3 +44,9 @@ jobs:
           name: JARVIS-APK
           path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
           
+      - name: Save extracted Android source
+        uses: actions/upload-artifact@v4
+        with:
+          name: JARVIS-SOURCE
+          path: extracted/
+          retention-days: 7
